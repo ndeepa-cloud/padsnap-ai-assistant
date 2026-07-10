@@ -9,7 +9,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 
-                         'Segoe UI', sans-serif;
+                        'Segoe UI', sans-serif;
             background: #0a0f1e;
             color: #ffffff;
             height: 100vh;
@@ -22,7 +22,7 @@
             padding: 16px 24px;
             border-bottom: 1px solid #1e3a5f;
             display: flex;
-            align-items: center;
+            align-items: center;z
             gap: 12px;
         }
 
@@ -183,7 +183,106 @@
             font-size: 14px;
             margin-bottom: 4px;
         }
+
+                /* PART 3 — Property Form CSS */
+        .property-form {
+            padding: 16px 24px;
+            background: #0d1628;
+            border-top: 1px solid #1e3a5f;
+        }
+
+        .form-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 8px 12px;
+            background: #1e293b;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2563eb;
+        }
+
+        .form-group select option {
+            background: #1e293b;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .generate-btn:hover { opacity: 0.9; }
+
+        .divider-text {
+            text-align: center;
+            font-size: 11px;
+            color: #334155;
+            padding: 8px 0;
+        }
+
+        .copy-btn {
+            padding: 4px 12px;
+            background: transparent;
+            border: 1px solid #1e3a5f;
+            border-radius: 6px;
+            color: #60a5fa;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #1e3a5f;
+        }
+
     </style>
+
 </head>
 <body>
 
@@ -202,6 +301,48 @@
         </p>
     </div>
 </div>
+
+<!-- Property Form -->
+<div class="property-form">
+    <div class="form-title">⚡ Quick Property Generator</div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Bedrooms</label>
+            <input type="number" id="bedrooms" placeholder="3">
+        </div>
+        <div class="form-group">
+            <label>Bathrooms</label>
+            <input type="number" id="bathrooms" placeholder="2">
+        </div>
+        <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="location" placeholder="Austin, Texas">
+        </div>
+        <div class="form-group">
+            <label>Price</label>
+            <input type="text" id="price" placeholder="$450,000">
+        </div>
+        <div class="form-group full-width">
+            <label>Key Features</label>
+            <input type="text" id="features" 
+                placeholder="pool, open kitchen, hardwood floors">
+        </div>
+        <div class="form-group full-width">
+            <label>Writing Style</label>
+            <select id="style">
+                <option value="professional">Professional</option>
+                <option value="luxury">Luxury</option>
+                <option value="casual">Casual & Friendly</option>
+                <option value="urgent">Urgent & Exciting</option>
+            </select>
+        </div>
+    </div>
+    <button class="generate-btn" onclick="generateFromForm()">
+        ✨ Generate All Content
+    </button>
+</div>
+
+<div class="divider-text">— or type your own message below —</div>
 
 <div class="suggestions">
     <div class="suggestion" onclick="suggest(this)">
@@ -231,13 +372,37 @@
 </div>
 
 <script>
-    function suggest(el) {
-        document.getElementById('userInput').value = el.innerText;
+function suggest(el) {
+        document.getElementById('userInput').value = 
+            'Generate full marketing content for: ' + el.innerText;
         sendMessage();
     }
 
     function handleKey(e) {
         if (e.key === 'Enter') sendMessage();
+    }
+
+    function generateFromForm() {
+        const bedrooms = document.getElementById('bedrooms').value || '3';
+        const bathrooms = document.getElementById('bathrooms').value || '2';
+        const location = document.getElementById('location').value || 'Austin, Texas';
+        const price = document.getElementById('price').value || '$450,000';
+        const features = document.getElementById('features').value || 'modern kitchen, spacious backyard';
+        const style = document.getElementById('style').value;
+
+        const prompt = `Generate complete marketing content for this property:
+- Bedrooms: ${bedrooms}
+- Bathrooms: ${bathrooms}
+- Location: ${location}
+- Price: ${price}
+- Key Features: ${features}
+- Writing Style: ${style}
+
+Please provide the headline, listing description, 
+Instagram caption, email subject lines, and hashtags.`;
+
+        document.getElementById('userInput').value = prompt;
+        sendMessage();
     }
 
     async function sendMessage() {
@@ -254,7 +419,7 @@
         const typing = document.createElement('div');
         typing.className = 'typing';
         typing.id = 'typing';
-        typing.innerText = 'AI is thinking...';
+        typing.innerText = '✨ Generating your content...';
         document.getElementById('chatContainer').appendChild(typing);
         scrollToBottom();
 
@@ -268,6 +433,7 @@
             const data = await response.json();
             document.getElementById('typing')?.remove();
             addMessage(data.reply, 'ai');
+
         } catch (error) {
             document.getElementById('typing')?.remove();
             addMessage('Sorry, something went wrong. Try again.', 'ai');
@@ -279,10 +445,35 @@
 
     function addMessage(text, type) {
         const container = document.getElementById('chatContainer');
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: ${type === 'user' ? 'flex-end' : 'flex-start'};
+            gap: 4px;
+        `;
+
         const div = document.createElement('div');
         div.className = `message ${type}-message`;
         div.innerText = text;
-        container.appendChild(div);
+        wrapper.appendChild(div);
+
+        if (type === 'ai') {
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.innerText = '📋 Copy all';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(text);
+                copyBtn.innerText = '✅ Copied!';
+                setTimeout(() => {
+                    copyBtn.innerText = '📋 Copy all';
+                }, 2000);
+            };
+            wrapper.appendChild(copyBtn);
+        }
+
+        container.appendChild(wrapper);
         scrollToBottom();
     }
 
