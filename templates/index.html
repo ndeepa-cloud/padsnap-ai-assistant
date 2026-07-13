@@ -304,7 +304,11 @@
 
 <!-- Property Form -->
 <div class="property-form">
-    <div class="form-title">⚡ Quick Property Generator</div>
+    <div class="form-title" onclick="toggleForm()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+        <span>⚡ Quick Property Generator</span>
+        <span id="toggleIcon">▼</span>
+    </div>
+    <div id="formContent">⚡ Quick Property Generator</div>
     <div class="form-grid">
         <div class="form-group">
             <label>Bedrooms</label>
@@ -339,7 +343,8 @@
     </div>
     <button class="generate-btn" onclick="generateFromForm()">
         ✨ Generate All Content
-    </button>
+</button>
+    </div>
 </div>
 
 <div class="divider-text">— or type your own message below —</div>
@@ -372,6 +377,17 @@
 </div>
 
 <script>
+function toggleForm() {
+    const content = document.getElementById('formContent');
+    const icon = document.getElementById('toggleIcon');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.innerText = '▼';
+    } else {
+        content.style.display = 'none';
+        icon.innerText = '▶';
+    }
+}
 function suggest(el) {
         document.getElementById('userInput').value = 
             'Generate full marketing content for: ' + el.innerText;
