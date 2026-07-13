@@ -277,11 +277,43 @@
             transition: all 0.2s;
         }
 
-        .copy-btn:hover {
+.copy-btn:hover {
             background: #1e3a5f;
         }
 
+        .drawer-toggle {
+            background: #0d1628;
+            border-top: 1px solid #1e3a5f;
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            gap: 8px;
+        }
+        .drawer-toggle:hover { background: #1e293b; }
+        .drawer-toggle span {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .arrow { 
+            font-size: 12px; 
+            color: #60a5fa;
+            transition: transform 0.3s ease;
+        }
+        .arrow.open { transform: rotate(180deg); }
+        .drawer-content {
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+            max-height: 400px;
+            background: #0d1628;
+        }
+        .drawer-content.collapsed { max-height: 0; }
+
     </style>
+
 
 </head>
 <body>
@@ -303,8 +335,13 @@
 </div>
 
 <!-- Property Form -->
+<div class="drawer-toggle" onclick="toggleDrawer()" id="drawerToggle">
+    <span>⚡ Property Tools</span>
+    <span class="arrow open" id="drawerArrow">▲</span>
+</div>
+<class="drawer-content" id="drawerContent">
 <div class="property-form">
-    <div class="form-title" onclick="toggleForm()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+    <div class="form-title">Quick Property Generator</div>
         <span>⚡ Quick Property Generator</span>
         <span id="toggleIcon">▼</span>
     </div>
@@ -344,10 +381,7 @@
     <button class="generate-btn" onclick="generateFromForm()">
         ✨ Generate All Content
 </button>
-    </div>
 </div>
-
-<div class="divider-text">— or type your own message below —</div>
 
 <div class="suggestions">
     <div class="suggestion" onclick="suggest(this)">
@@ -362,6 +396,7 @@
     <div class="suggestion" onclick="suggest(this)">
         Headline for a beachfront property
     </div>
+</div>
 </div>
 
 <div class="input-area">
