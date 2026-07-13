@@ -412,6 +412,17 @@
 </div>
 
 <script>
+    function toggleDrawer() {
+    const content = document.getElementById('drawerContent');
+    const arrow = document.getElementById('drawerArrow');
+    content.classList.toggle('collapsed');
+    arrow.classList.toggle('open');
+    if (content.classList.contains('collapsed')) {
+        arrow.innerText = '▼';
+    } else {
+        arrow.innerText = '▲';
+    }
+}
 function toggleForm() {
     const content = document.getElementById('formContent');
     const icon = document.getElementById('toggleIcon');
