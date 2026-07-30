@@ -1,456 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Padsnap AI Assistant</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0a0f1e;
-            color: #ffffff;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .header {
-            background: #0d1628;
-            padding: 14px 24px;
-            border-bottom: 1px solid #1e3a5f;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-        .header-dot {
-            width: 10px; height: 10px;
-            background: #2563eb;
-            border-radius: 50%;
-        }
-        .header h1 { font-size: 18px; font-weight: 700; color: #60a5fa; }
-        .header p { font-size: 12px; color: #64748b; margin-left: auto; }
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .welcome {
-            text-align: center;
-            padding: 48px 24px;
-            color: #475569;
-        }
-        .welcome h2 { font-size: 22px; color: #60a5fa; margin-bottom: 8px; }
-        .welcome p { font-size: 13px; margin-bottom: 4px; }
-        .message {
-            max-width: 75%;
-            padding: 14px 18px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .user-message {
-            background: #2563eb; color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-        .ai-message {
-            background: #0d1628; color: #e2e8f0;
-            align-self: flex-start;
-            border: 1px solid #1e3a5f;
-            border-bottom-left-radius: 4px;
-        }
-        .typing {
-            background: #0d1628;
-            border: 1px solid #1e3a5f;
-            color: #60a5fa;
-            align-self: flex-start;
-            padding: 14px 18px;
-            border-radius: 16px;
-            font-size: 14px;
-        }
-        .copy-btn {
-            padding: 4px 12px;
-            background: transparent;
-            border: 1px solid #1e3a5f;
-            border-radius: 6px;
-            color: #60a5fa;
-            font-size: 11px;
-            cursor: pointer;
-            margin-top: 4px;
-        }
-        .copy-btn:hover { background: #1e3a5f; }
-
-        /* DRAWER TOGGLE */
-        .drawer-toggle {
-            background: #0d1628;
-            border-top: 2px solid #2563eb;
-            padding: 8px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            gap: 8px;
-            flex-shrink: 0;
-            user-select: none;
-        }
-        .drawer-toggle:hover { background: #1e293b; }
-        .drawer-label {
-            font-size: 11px;
-            color: #60a5fa;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .drawer-arrow {
-            font-size: 10px;
-            color: #60a5fa;
-            transition: transform 0.3s ease;
-            display: inline-block;
-        }
-        .drawer-arrow.rotated { transform: rotate(180deg); }
-
-        /* DRAWER */
-        .drawer {
-            background: #0d1628;
-            overflow: hidden;
-            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: 500px;
-            flex-shrink: 0;
-        }
-        .drawer.closed { max-height: 0; }
-
-        /* FORM */
-        .property-form { padding: 14px 24px 8px; }
-        .form-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #60a5fa;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .form-group { display: flex; flex-direction: column; gap: 3px; }
-        .form-group.full { grid-column: 1 / -1; }
-        .form-group label {
-            font-size: 10px;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .form-group input,
-        .form-group select {
-            padding: 7px 10px;
-            background: #1e293b;
-            border: 1px solid #1e3a5f;
-            border-radius: 8px;
-            color: white;
-            font-size: 12px;
-            outline: none;
-        }
-        .form-group input:focus,
-        .form-group select:focus { border-color: #2563eb; }
-        .form-group select option { background: #1e293b; }
-        .generate-btn {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .generate-btn:hover { opacity: 0.9; }
-
-        /* SUGGESTIONS */
-        .suggestions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding: 6px 24px 12px;
-            border-top: 1px solid #1a2744;
-        }
-        .suggestion {
-            padding: 6px 12px;
-            background: #0a0f1e;
-            border: 1px solid #1e3a5f;
-            border-radius: 20px;
-            font-size: 11px;
-            color: #60a5fa;
-            cursor: pointer;
-        }
-        .suggestion:hover { background: #1e3a5f; }
-
-        /* INPUT */
-        .input-area {
-            padding: 12px 24px;
-            background: #0d1628;
-            border-top: 1px solid #1e3a5f;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .input-area input {
-            flex: 1;
-            padding: 11px 16px;
-            background: #1e293b;
-            border: 1px solid #1e3a5f;
-            border-radius: 12px;
-            color: white;
-            font-size: 13px;
-            outline: none;
-        }
-        .input-area input:focus { border-color: #2563eb; }
-        .input-area input::placeholder { color: #475569; }
-        .send-btn {
-            padding: 11px 22px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .send-btn:hover { background: #1d4ed8; }
-        .send-btn:disabled { background: #1e3a5f; cursor: not-allowed; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Padsnap AI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0f1e;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header{background:#0d1628;padding:14px 24px;border-bottom:1px solid #1e3a5f;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.header-dot{width:10px;height:10px;background:#2563eb;border-radius:50%}
+.header h1{font-size:18px;font-weight:700;color:#60a5fa}
+.header p{font-size:12px;color:#64748b;margin-left:auto}
+.main{display:flex;flex:1;overflow:hidden}
+.left{width:320px;flex-shrink:0;background:#0d1628;border-right:1px solid #1e3a5f;display:flex;flex-direction:column;overflow:hidden}
+.left-chat{padding:12px;border-bottom:1px solid #1e3a5f;flex-shrink:0}
+.left-chat-title{font-size:10px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.left-input{display:flex;gap:6px}
+.left-input input{flex:1;padding:9px 12px;background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;color:white;font-size:12px;outline:none}
+.left-input input:focus{border-color:#2563eb}
+.left-input input::placeholder{color:#475569}
+.left-input button{padding:9px 14px;background:#2563eb;border:none;border-radius:10px;color:white;font-size:14px;cursor:pointer;font-weight:700}
+.left-input button:hover{background:#1d4ed8}
+.left-input button:disabled{background:#1e3a5f;cursor:not-allowed}
+.quick{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.qchip{padding:4px 9px;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;font-size:10px;color:#60a5fa;cursor:pointer}
+.qchip:hover{background:#1e3a5f}
+.prop-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.empty{text-align:center;padding:40px 16px;color:#334155}
+.empty .ico{font-size:36px;margin-bottom:10px}
+.empty p{font-size:12px}
+.pcard{background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;padding:12px;cursor:pointer;transition:all 0.2s}
+.pcard:hover{border-color:#2563eb;background:#1a2d4a}
+.pcard.active{border-color:#2563eb;background:#1a2d4a;box-shadow:0 0 0 2px rgba(37,99,235,0.25)}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.pprice{font-size:15px;font-weight:800;color:#60a5fa}
+.pstatus{font-size:10px;padding:2px 7px;background:#064e3b;color:#34d399;border-radius:8px;font-weight:600}
+.paddr{font-size:12px;font-weight:600;color:#e2e8f0;margin-bottom:2px}
+.pcity{font-size:11px;color:#64748b;margin-bottom:6px}
+.pdets{display:flex;gap:10px;margin-bottom:6px}
+.pdet{font-size:11px;color:#94a3b8}
+.pdet span{color:#e2e8f0;font-weight:600}
+.ptags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.ptag{font-size:10px;padding:2px 7px;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:6px;color:#94a3b8}
+.genbtn{width:100%;padding:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;border-radius:8px;color:white;font-size:12px;font-weight:700;cursor:pointer}
+.genbtn:hover{opacity:0.9}
+.genbtn:disabled{background:#1e3a5f;cursor:not-allowed;opacity:0.5}
+.skel{background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;padding:12px;animation:pulse 1.5s infinite}
+.sl{background:#2a3f5f;border-radius:4px;margin-bottom:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.welcome{text-align:center;padding:60px 20px;color:#334155}
+.welcome h2{font-size:22px;color:#60a5fa;margin-bottom:8px}
+.welcome p{font-size:13px;margin-bottom:4px}
+.mwrap{display:flex;flex-direction:column;gap:4px}
+.mwrap.user{align-items:flex-end}
+.mwrap.ai{align-items:flex-start}
+.msg{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.7;white-space:pre-wrap;animation:fi 0.3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{background:#2563eb;color:white;border-bottom-right-radius:4px}
+.msg.ai{background:#0d1628;color:#e2e8f0;border:1px solid #1e3a5f;border-bottom-left-radius:4px}
+.cursor{display:inline-block;width:2px;height:13px;background:#60a5fa;margin-left:2px;animation:bl 0.8s infinite;vertical-align:middle}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+.copybtn{padding:3px 10px;background:transparent;border:1px solid #1e3a5f;border-radius:5px;color:#60a5fa;font-size:11px;cursor:pointer;align-self:flex-start;margin-top:2px}
+.copybtn:hover{background:#1e3a5f}
+.input-bar{flex-shrink:0;padding:12px 20px;background:#0d1628;border-top:1px solid #1e3a5f;display:flex;gap:10px;align-items:center}
+.input-bar input{flex:1;padding:11px 16px;background:#1e293b;border:1px solid #1e3a5f;border-radius:12px;color:white;font-size:13px;outline:none}
+.input-bar input:focus{border-color:#2563eb}
+.input-bar input::placeholder{color:#475569}
+.sendbtn{padding:11px 20px;background:#2563eb;border:none;border-radius:12px;color:white;font-size:13px;font-weight:600;cursor:pointer}
+.sendbtn:hover{background:#1d4ed8}
+.sendbtn:disabled{background:#1e3a5f;cursor:not-allowed}
+</style>
 </head>
 <body>
-
-<!-- HEADER -->
 <div class="header">
-    <div class="header-dot"></div>
-    <h1>Padsnap AI</h1>
-    <p>Real Estate Marketing Assistant</p>
+  <div class="header-dot"></div>
+  <h1>Padsnap AI</h1>
+  <p>Real Estate Marketing Assistant</p>
 </div>
-
-<!-- CHAT -->
-<div class="chat-container" id="chatContainer">
-    <div class="welcome">
-        <h2>🏠 Padsnap AI Assistant</h2>
-        <p>Generate professional real estate content instantly</p>
-        <p style="color:#334155; font-size:12px; margin-top:6px;">
-            Listing descriptions · Social media · Email copy
+<div class="main">
+  <div class="left">
+    <div class="left-chat">
+      <div class="left-chat-title">Find Properties</div>
+      <div class="left-input">
+        <input type="text" id="searchInput" placeholder="3 bed Austin under $500K" onkeypress="if(event.key==='Enter')doSearch()"/>
+        <button id="searchBtn" onclick="doSearch()">&#8594;</button>
+      </div>
+      <div class="quick">
+        <div class="qchip" onclick="qs(this)">Austin $500K</div>
+        <div class="qchip" onclick="qs(this)">NYC luxury</div>
+        <div class="qchip" onclick="qs(this)">Miami beach</div>
+        <div class="qchip" onclick="qs(this)">LA homes</div>
+      </div>
+    </div>
+    <div class="prop-list" id="propList">
+      <div class="empty">
+        <div class="ico">&#127968;</div>
+        <p>Search for properties above</p>
+        <p style="font-size:11px;margin-top:4px;color:#1e3a5f">or type in chat on the right</p>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="chat-area" id="chatArea">
+      <div class="welcome">
+        <h2>Welcome to Padsnap AI</h2>
+        <p>Search properties on the left</p>
+        <p>or describe what you need below</p>
+        <p style="font-size:11px;margin-top:10px;color:#1e3a5f">
+          Try: "Find me a 3 bed house in Austin under $500K"
         </p>
+      </div>
     </div>
-</div>
-
-<!-- TOGGLE BAR -->
-<div class="drawer-toggle" onclick="toggleDrawer()">
-    <span class="drawer-label" id="drawerLabel">⚡ Property Tools</span>
-    <span class="drawer-arrow rotated" id="drawerArrow">▲</span>
-</div>
-
-<!-- DRAWER — everything inside here collapses -->
-<div class="drawer" id="drawer">
-
-    <div class="property-form">
-        <div class="form-label">Quick Property Generator</div>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Bedrooms</label>
-                <input type="number" id="bedrooms" placeholder="3">
-            </div>
-            <div class="form-group">
-                <label>Bathrooms</label>
-                <input type="number" id="bathrooms" placeholder="2">
-            </div>
-            <div class="form-group">
-                <label>Location</label>
-                <input type="text" id="location" placeholder="Austin, Texas">
-            </div>
-            <div class="form-group">
-                <label>Price</label>
-                <input type="text" id="price" placeholder="$450,000">
-            </div>
-            <div class="form-group full">
-                <label>Key Features</label>
-                <input type="text" id="features"
-                       placeholder="pool, open kitchen, hardwood floors">
-            </div>
-            <div class="form-group full">
-                <label>Writing Style</label>
-                <select id="style">
-                    <option value="professional">Professional</option>
-                    <option value="luxury">Luxury</option>
-                    <option value="casual">Casual & Friendly</option>
-                    <option value="urgent">Urgent & Exciting</option>
-                </select>
-            </div>
-        </div>
-        <button class="generate-btn" onclick="generateFromForm()">
-            ✨ Generate All Content
-        </button>
+    <div class="input-bar">
+      <input type="text" id="chatInput" placeholder="Ask me anything or describe what property you need..." onkeypress="if(event.key==='Enter')sendChat()"/>
+      <button class="sendbtn" id="sendBtn" onclick="sendChat()">Send</button>
     </div>
-
-    <div class="suggestions">
-        <div class="suggestion" onclick="suggest(this)">3bed/2bath with pool in Miami</div>
-        <div class="suggestion" onclick="suggest(this)">Luxury penthouse in Manhattan</div>
-        <div class="suggestion" onclick="suggest(this)">Studio apartment in Chicago</div>
-        <div class="suggestion" onclick="suggest(this)">Beachfront property in Malibu</div>
-    </div>
-
+  </div>
 </div>
-<!-- END DRAWER -->
-
-<!-- INPUT -->
-<div class="input-area">
-    <input
-        type="text"
-        id="userInput"
-        placeholder="Describe a property or ask for help..."
-        onkeypress="handleKey(event)"
-    />
-    <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
-</div>
-
 <script>
-    function toggleDrawer() {
-        const drawer = document.getElementById('drawer');
-        const arrow = document.getElementById('drawerArrow');
-        const label = document.getElementById('drawerLabel');
+let history=[];
 
-        const isOpen = !drawer.classList.contains('closed');
+function qs(el){
+  document.getElementById('searchInput').value=el.innerText;
+  doSearch();
+}
 
-        if (isOpen) {
-            drawer.classList.add('closed');
-            arrow.classList.remove('rotated');
-            arrow.innerText = '▼';
-            label.innerText = '⚡ Property Tools — tap to expand';
-        } else {
-            drawer.classList.remove('closed');
-            arrow.classList.add('rotated');
-            arrow.innerText = '▲';
-            label.innerText = '⚡ Property Tools';
-        }
+async function doSearch(){
+  const q=document.getElementById('searchInput').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('searchBtn');
+  btn.disabled=true;btn.innerText='...';
+  showSkeletons();
+  addUserMsg('Find properties: '+q);
+  try{
+    const res=await fetch('/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:q,history:[]})
+    });
+    const data=await res.json();
+    if(data.type==='search'){
+      renderCards(data.properties);
+      addAIMsg(data.message);
     }
+  }catch(e){
+    document.getElementById('propList').innerHTML='<div class="empty"><p>Search failed. Try again.</p></div>';
+  }
+  btn.disabled=false;btn.innerHTML='&#8594;';
+}
 
-    function suggest(el) {
-        document.getElementById('userInput').value =
-            'Generate full marketing content for: ' + el.innerText;
-        sendMessage();
+function showSkeletons(){
+  const list=document.getElementById('propList');
+  list.innerHTML=[1,2,3,4].map(()=>`
+    <div class="skel">
+      <div class="sl" style="height:18px;width:55%"></div>
+      <div class="sl" style="height:13px;width:75%"></div>
+      <div class="sl" style="height:13px;width:40%"></div>
+      <div class="sl" style="height:28px;width:100%;margin-top:10px"></div>
+    </div>`).join('');
+}
+
+function renderCards(props){
+  const list=document.getElementById('propList');
+  if(!props||props.length===0){
+    list.innerHTML='<div class="empty"><p>No properties found</p></div>';
+    return;
+  }
+  list.innerHTML=`<div style="font-size:10px;color:#64748b;padding:2px 4px;margin-bottom:4px">Found ${props.length} properties</div>`;
+  props.forEach(p=>{
+    const d=document.createElement('div');
+    d.className='pcard';
+    const pj=JSON.stringify(p).replace(/"/g,'&quot;');
+    d.innerHTML=`
+      <div class="ptop">
+        <div class="pprice">${p.price}</div>
+        <div class="pstatus">${p.status||'For Sale'}</div>
+      </div>
+      <div class="paddr">${p.address}</div>
+      <div class="pcity">${p.city}, ${p.state}</div>
+      <div class="pdets">
+        <div class="pdet"><span>${p.beds}</span> beds</div>
+        <div class="pdet"><span>${p.baths}</span> baths</div>
+        <div class="pdet"><span>${p.sqft}</span> sqft</div>
+      </div>
+      <div class="ptags">${(p.features||[]).map(f=>`<span class="ptag">${f}</span>`).join('')}</div>
+      <button class="genbtn" onclick='genMarketing(${JSON.stringify(p).replace(/'/g,"&#39;")},this)'>Generate Marketing Content</button>
+    `;
+    list.appendChild(d);
+  });
+}
+
+async function genMarketing(prop,btn){
+  document.querySelectorAll('.pcard').forEach(c=>c.classList.remove('active'));
+  btn.closest('.pcard').classList.add('active');
+  btn.disabled=true;btn.innerText='Generating...';
+  addUserMsg('Generate marketing for '+prop.address+', '+prop.city+' — '+prop.price);
+  const msgDiv=addStreamMsg();
+  try{
+    const res=await fetch('/generate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({property:prop})
+    });
+    const reader=res.body.getReader();
+    const dec=new TextDecoder();
+    let full='';
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      full+=dec.decode(value);
+      msgDiv.innerText=full;
+      scrollDown();
     }
+    finishMsg(msgDiv,full);
+  }catch(e){
+    msgDiv.innerText='Something went wrong. Try again.';
+  }
+  btn.disabled=false;btn.innerText='Generate Marketing Content';
+}
 
-    function handleKey(e) {
-        if (e.key === 'Enter') sendMessage();
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  const btn=document.getElementById('sendBtn');
+  btn.disabled=true;inp.value='';
+  addUserMsg(msg);
+  try{
+    const res=await fetch('/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg,history:history})
+    });
+    const ct=res.headers.get('content-type')||'';
+    if(ct.includes('application/json')){
+      const data=await res.json();
+      if(data.type==='search'){
+        renderCards(data.properties);
+        addAIMsg(data.message);
+      }
+    }else{
+      const msgDiv=addStreamMsg();
+      const reader=res.body.getReader();
+      const dec=new TextDecoder();
+      let full='';
+      while(true){
+        const{done,value}=await reader.read();
+        if(done)break;
+        full+=dec.decode(value);
+        msgDiv.innerText=full;
+        scrollDown();
+      }
+      history.push({role:'user',content:msg});
+      history.push({role:'assistant',content:full});
+      finishMsg(msgDiv,full);
     }
+  }catch(e){
+    addAIMsg('Something went wrong. Try again.');
+  }
+  btn.disabled=false;
+  document.getElementById('chatInput').focus();
+}
 
-    function generateFromForm() {
-        const bedrooms = document.getElementById('bedrooms').value || '3';
-        const bathrooms = document.getElementById('bathrooms').value || '2';
-        const location = document.getElementById('location').value || 'Austin, Texas';
-        const price = document.getElementById('price').value || '$450,000';
-        const features = document.getElementById('features').value || 'modern kitchen, backyard';
-        const style = document.getElementById('style').value;
+function addUserMsg(txt){
+  const a=document.getElementById('chatArea');
+  const w=document.createElement('div');
+  w.className='mwrap user';
+  w.innerHTML=`<div class="msg user">${txt}</div>`;
+  a.appendChild(w);scrollDown();
+}
 
-        const prompt = `Generate complete marketing content for this property:
-- Bedrooms: ${bedrooms}
-- Bathrooms: ${bathrooms}
-- Location: ${location}
-- Price: ${price}
-- Key Features: ${features}
-- Writing Style: ${style}
+function addAIMsg(txt){
+  const a=document.getElementById('chatArea');
+  const w=document.createElement('div');
+  w.className='mwrap ai';
+  w.innerHTML=`<div class="msg ai">${txt}</div>`;
+  a.appendChild(w);scrollDown();
+}
 
-Please provide the headline, listing description,
-Instagram caption, email subject lines, and hashtags.`;
+function addStreamMsg(){
+  const a=document.getElementById('chatArea');
+  const w=document.createElement('div');
+  w.className='mwrap ai';w.id='sw';
+  const m=document.createElement('div');
+  m.className='msg ai';
+  m.innerHTML='<span class="cursor"></span>';
+  w.appendChild(m);a.appendChild(w);scrollDown();
+  return m;
+}
 
-        document.getElementById('userInput').value = prompt;
-        sendMessage();
-    }
+function finishMsg(div,txt){
+  div.innerText=txt;
+  const w=document.getElementById('sw');
+  if(w)w.removeAttribute('id');
+  const b=document.createElement('button');
+  b.className='copybtn';b.innerText='Copy';
+  b.onclick=()=>{
+    navigator.clipboard.writeText(txt);
+    b.innerText='Copied!';
+    setTimeout(()=>b.innerText='Copy',2000);
+  };
+  if(div.parentElement)div.parentElement.appendChild(b);
+  scrollDown();
+}
 
-    async function sendMessage() {
-        const input = document.getElementById('userInput');
-        const message = input.value.trim();
-        if (!message) return;
-
-        const btn = document.getElementById('sendBtn');
-        btn.disabled = true;
-        input.value = '';
-
-        addMessage(message, 'user');
-
-        const typing = document.createElement('div');
-        typing.className = 'typing';
-        typing.id = 'typing';
-        typing.innerText = '✨ Generating your content...';
-        document.getElementById('chatContainer').appendChild(typing);
-        scrollToBottom();
-
-        try {
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message })
-            });
-            const data = await response.json();
-            document.getElementById('typing')?.remove();
-            addMessage(data.reply, 'ai');
-        } catch (error) {
-            document.getElementById('typing')?.remove();
-            addMessage('Sorry, something went wrong. Try again.', 'ai');
-        }
-
-        btn.disabled = false;
-        input.focus();
-    }
-
-    function addMessage(text, type) {
-        const container = document.getElementById('chatContainer');
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            align-items: ${type === 'user' ? 'flex-end' : 'flex-start'};
-            gap: 4px;
-        `;
-        const div = document.createElement('div');
-        div.className = `message ${type}-message`;
-        div.innerText = text;
-        wrapper.appendChild(div);
-
-        if (type === 'ai') {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.innerText = '📋 Copy all';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(text);
-                copyBtn.innerText = '✅ Copied!';
-                setTimeout(() => { copyBtn.innerText = '📋 Copy all'; }, 2000);
-            };
-            wrapper.appendChild(copyBtn);
-        }
-
-        container.appendChild(wrapper);
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        const container = document.getElementById('chatContainer');
-        container.scrollTop = container.scrollHeight;
-    }
+function scrollDown(){
+  const a=document.getElementById('chatArea');
+  a.scrollTop=a.scrollHeight;
+}
 </script>
-
 </body>
 </html>
