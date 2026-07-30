@@ -29,7 +29,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty{text-align:center;padding:40px 16px;color:#334155}
 .empty .ico{font-size:36px;margin-bottom:10px}
 .empty p{font-size:12px}
-.pcard{background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;padding:12px;cursor:pointer;transition:all 0.2s}
+.pcard{background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;padding:12px;transition:all 0.2s}
 .pcard:hover{border-color:#2563eb;background:#1a2d4a}
 .pcard.active{border-color:#2563eb;background:#1a2d4a;box-shadow:0 0 0 2px rgba(37,99,235,0.25)}
 .ptop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
@@ -42,9 +42,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pdet span{color:#e2e8f0;font-weight:600}
 .ptags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
 .ptag{font-size:10px;padding:2px 7px;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:6px;color:#94a3b8}
-.genbtn{width:100%;padding:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;border-radius:8px;color:white;font-size:12px;font-weight:700;cursor:pointer}
+.btn-row{display:flex;gap:6px;margin-top:8px}
+.genbtn{flex:1;padding:8px;background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;border-radius:8px;color:white;font-size:11px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
 .genbtn:hover{opacity:0.9}
 .genbtn:disabled{background:#1e3a5f;cursor:not-allowed;opacity:0.5}
+.viewbtn{padding:8px 10px;background:#0a0f1e;border:1px solid #2563eb;border-radius:8px;color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.viewbtn:hover{background:#1e3a5f}
 .skel{background:#1e293b;border:1px solid #1e3a5f;border-radius:10px;padding:12px;animation:pulse 1.5s infinite}
 .sl{background:#2a3f5f;border-radius:4px;margin-bottom:6px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
@@ -127,6 +130,12 @@ function qs(el){
   doSearch();
 }
 
+function viewOnline(address, city, state){
+  const query = encodeURIComponent(address+' '+city+' '+state);
+  const zillow = 'https://www.zillow.com/homes/'+query+'_rb/';
+  window.open(zillow,'_blank');
+}
+
 async function doSearch(){
   const q=document.getElementById('searchInput').value.trim();
   if(!q)return;
@@ -140,10 +149,27 @@ async function doSearch(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({message:q,history:[]})
     });
-    const data=await res.json();
-    if(data.type==='search'){
-      renderCards(data.properties);
-      addAIMsg(data.message);
+    const ct=res.headers.get('content-type')||'';
+    if(ct.includes('application/json')){
+      const data=await res.json();
+      if(data.type==='search'){
+        renderCards(data.properties);
+        addAIMsg(data.message);
+      }
+    }else{
+      const msgDiv=addStreamMsg();
+      const reader=res.body.getReader();
+      const dec=new TextDecoder();
+      let full='';
+      while(true){
+        const{done,value}=await reader.read();
+        if(done)break;
+        full+=dec.decode(value);
+        msgDiv.innerText=full;
+        scrollDown();
+      }
+      finishMsg(msgDiv,full);
+      document.getElementById('propList').innerHTML='<div class="empty"><div class="ico">&#128533;</div><p>No properties found</p><p style="font-size:11px;margin-top:4px">Try a different search</p></div>';
     }
   }catch(e){
     document.getElementById('propList').innerHTML='<div class="empty"><p>Search failed. Try again.</p></div>';
@@ -168,11 +194,14 @@ function renderCards(props){
     list.innerHTML='<div class="empty"><p>No properties found</p></div>';
     return;
   }
-  list.innerHTML=`<div style="font-size:10px;color:#64748b;padding:2px 4px;margin-bottom:4px">Found ${props.length} properties</div>`;
+  list.innerHTML='<div style="font-size:10px;color:#64748b;padding:2px 4px;margin-bottom:4px">Found '+props.length+' properties</div>';
   props.forEach(p=>{
     const d=document.createElement('div');
     d.className='pcard';
     const pj=JSON.stringify(p).replace(/"/g,'&quot;');
+    const addr=p.address.replace(/'/g,"\'");
+    const city=p.city.replace(/'/g,"\'");
+    const state=p.state.replace(/'/g,"\'");
     d.innerHTML=`
       <div class="ptop">
         <div class="pprice">${p.price}</div>
@@ -185,8 +214,15 @@ function renderCards(props){
         <div class="pdet"><span>${p.baths}</span> baths</div>
         <div class="pdet"><span>${p.sqft}</span> sqft</div>
       </div>
-      <div class="ptags">${(p.features||[]).map(f=>`<span class="ptag">${f}</span>`).join('')}</div>
-      <button class="genbtn" onclick='genMarketing(${JSON.stringify(p).replace(/'/g,"&#39;")},this)'>Generate Marketing Content</button>
+      <div class="ptags">${(p.features||[]).map(f=>'<span class="ptag">'+f+'</span>').join('')}</div>
+      <div class="btn-row">
+        <button class="genbtn" onclick='genMarketing(${JSON.stringify(p).replace(/'/g,"&#39;")},this)'>
+          Generate Marketing
+        </button>
+        <button class="viewbtn" onclick="viewOnline('${addr}','${city}','${state}')">
+          View Online
+        </button>
+      </div>
     `;
     list.appendChild(d);
   });
@@ -218,7 +254,7 @@ async function genMarketing(prop,btn){
   }catch(e){
     msgDiv.innerText='Something went wrong. Try again.';
   }
-  btn.disabled=false;btn.innerText='Generate Marketing Content';
+  btn.disabled=false;btn.innerText='Generate Marketing';
 }
 
 async function sendChat(){
@@ -268,7 +304,7 @@ function addUserMsg(txt){
   const a=document.getElementById('chatArea');
   const w=document.createElement('div');
   w.className='mwrap user';
-  w.innerHTML=`<div class="msg user">${txt}</div>`;
+  w.innerHTML='<div class="msg user">'+txt+'</div>';
   a.appendChild(w);scrollDown();
 }
 
@@ -276,7 +312,7 @@ function addAIMsg(txt){
   const a=document.getElementById('chatArea');
   const w=document.createElement('div');
   w.className='mwrap ai';
-  w.innerHTML=`<div class="msg ai">${txt}</div>`;
+  w.innerHTML='<div class="msg ai">'+txt+'</div>';
   a.appendChild(w);scrollDown();
 }
 
