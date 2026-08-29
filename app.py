@@ -33,77 +33,73 @@ When generating marketing content ALWAYS use this format:
 #️⃣ HASHTAGS:
 (15 relevant hashtags)"""
 
+SEARCH_KEYWORDS = [
+    # Actions
+    'find', 'search', 'looking', 'need', 'want',
+    'show', 'buy', 'get', 'rent', 'lease',
+    # Property types
+    'bed', 'bath', 'bedroom', 'bathroom',
+    'house', 'home', 'condo', 'apartment',
+    'studio', 'townhouse', 'penthouse', 'villa',
+    'ranch', 'cottage', 'duplex', 'loft',
+    'property', 'properties', 'listing', 'listings',
+    'real estate', 'realty',
+    # Price indicators
+    '$', 'million', 'thousand', 'price', 'budget',
+    'under', 'below', 'above', 'around', 'cheap',
+    'affordable', 'luxury', 'expensive',
+    # Features
+    'pool', 'garage', 'garden', 'backyard', 'yard',
+    'parking', 'balcony', 'view', 'modern',
+    'renovated', 'new', 'spacious', 'cozy',
+    # US Cities
+    'austin', 'new york', 'nyc', 'manhattan',
+    'brooklyn', 'bronx', 'queens', 'miami',
+    'chicago', 'los angeles', 'la', 'san francisco',
+    'sf', 'seattle', 'denver', 'atlanta', 'dallas',
+    'houston', 'phoenix', 'vegas', 'las vegas',
+    'boston', 'washington', 'dc', 'nashville',
+    'portland', 'san diego', 'orlando', 'tampa',
+    'charlotte', 'raleigh', 'minneapolis',
+    'detroit', 'philadelphia', 'philly',
+    'baltimore', 'pittsburgh', 'cleveland',
+    'columbus', 'indianapolis', 'memphis',
+    'louisville', 'richmond', 'salt lake',
+    'sacramento', 'fresno', 'tucson', 'mesa',
+    'omaha', 'kansas city', 'tulsa',
+    # US States
+    'florida', 'california', 'texas', 'new york',
+    'illinois', 'washington', 'georgia', 'ohio',
+    'north carolina', 'michigan', 'arizona',
+    'colorado', 'tennessee', 'oregon', 'nevada',
+    'kentucky', 'virginia', 'indiana', 'maryland',
+    # International
+    'london', 'toronto', 'sydney', 'dubai',
+    # Location descriptors
+    'downtown', 'suburb', 'suburban', 'rural',
+    'urban', 'neighborhood', 'area', 'district',
+    'near', 'close', 'walk', 'commute',
+    'school', 'beach', 'ocean', 'lake', 'mountain',
+    # Other
+    'sale', 'for sale', 'available', 'invest',
+    'investment', 'flip', 'agent', 'realtor',
+    'broker', 'sqft', 'square feet', 'acres',
+    'family', 'single family', 'starter',
+    'move in', 'murray', 'ky', 'kentucky'
+]
+
 
 def is_property_search(message):
     msg = message.lower()
-
-    keywords = [
-        # Actions
-        'find', 'search', 'looking', 'need', 'want',
-        'show', 'buy', 'get', 'rent', 'lease',
-        # Property types
-        'bed', 'bath', 'bedroom', 'bathroom',
-        'house', 'home', 'condo', 'apartment',
-        'studio', 'townhouse', 'penthouse', 'villa',
-        'ranch', 'cottage', 'duplex', 'loft',
-        'property', 'properties', 'listing', 'listings',
-        'real estate', 'realty',
-        # Price indicators
-        '$', 'million', 'thousand', 'price', 'budget',
-        'under', 'below', 'above', 'around', 'cheap',
-        'affordable', 'luxury', 'expensive', 'budget',
-        # Features
-        'pool', 'garage', 'garden', 'backyard', 'yard',
-        'parking', 'balcony', 'view', 'modern',
-        'renovated', 'new', 'spacious', 'cozy',
-        # Locations - US Cities
-        'austin', 'new york', 'nyc', 'manhattan',
-        'brooklyn', 'bronx', 'queens', 'miami',
-        'chicago', 'los angeles', 'la', 'san francisco',
-        'sf', 'seattle', 'denver', 'atlanta', 'dallas',
-        'houston', 'phoenix', 'vegas', 'las vegas',
-        'boston', 'washington', 'dc', 'nashville',
-        'portland', 'san diego', 'orlando', 'tampa',
-        'charlotte', 'raleigh', 'minneapolis',
-        'detroit', 'philadelphia', 'philly',
-        'baltimore', 'pittsburgh', 'cleveland',
-        'columbus', 'indianapolis', 'memphis',
-        'louisville', 'richmond', 'salt lake',
-        'sacramento', 'fresno', 'tucson', 'mesa',
-        'omaha', 'kansas city', 'tulsa', 'aurora',
-        # US States
-        'florida', 'california', 'texas', 'new york',
-        'illinois', 'washington', 'georgia', 'ohio',
-        'north carolina', 'michigan', 'arizona',
-        'colorado', 'tennessee', 'oregon', 'nevada',
-        'kentucky', 'virginia', 'indiana', 'maryland',
-        # International
-        'london', 'toronto', 'sydney', 'dubai',
-        'canada', 'australia', 'uk', 'uae',
-        # Location descriptors
-        'downtown', 'suburb', 'suburban', 'rural',
-        'urban', 'neighborhood', 'area', 'district',
-        'near', 'close', 'walk', 'commute',
-        'school', 'beach', 'ocean', 'lake', 'mountain',
-        # Other real estate terms
-        'sale', 'for sale', 'available', 'invest',
-        'investment', 'flip', 'agent', 'realtor',
-        'broker', 'mortgage', 'sqft', 'square feet',
-        'acres', 'lot', 'family', 'single family',
-        'starter', 'starter home', 'move in'
-    ]
-
-    if any(kw in msg for kw in keywords):
+    if any(kw in msg for kw in SEARCH_KEYWORDS):
         return True
-
-    # Fallback — ask AI to decide
     try:
         detect = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama3-70b-8192",
             messages=[{
                 "role": "user",
-                "content": f"""Is this message asking to find, 
-search or look for real estate properties or homes?
+                "content": f"""Is this message asking to find or search 
+for real estate properties or homes?
 Message: "{message}"
 Answer only YES or NO."""
             }],
@@ -186,7 +182,7 @@ IMPORTANT RULES:
 - Return ONLY valid JSON nothing else"""
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama3-70b-8192",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
         max_tokens=2000
@@ -246,7 +242,7 @@ def chat():
 
         def stream():
             completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="llama3-70b-8192",
                 messages=messages,
                 temperature=0.7,
                 max_tokens=2000,
@@ -282,7 +278,7 @@ Instagram caption, email subject lines, and hashtags."""
 
     def stream():
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama3-70b-8192",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
