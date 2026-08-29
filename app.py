@@ -95,7 +95,7 @@ def is_property_search(message):
         return True
     try:
         detect = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[{
                 "role": "user",
                 "content": f"""Is this message asking to find or search 
@@ -182,7 +182,7 @@ IMPORTANT RULES:
 - Return ONLY valid JSON nothing else"""
 
     response = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
         max_tokens=2000
@@ -242,7 +242,7 @@ def chat():
 
         def stream():
             completion = client.chat.completions.create(
-                model="llama3-70b-8192",
+                model="llama-3.1-8b-instant",
                 messages=messages,
                 temperature=0.7,
                 max_tokens=2000,
@@ -278,7 +278,7 @@ Instagram caption, email subject lines, and hashtags."""
 
     def stream():
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
